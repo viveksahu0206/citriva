@@ -1,0 +1,38 @@
+# Render Blueprint. Background workers require a paid instance type on Render.
+services:
+  - type: keyvalue
+    name: citriva-redis
+    plan: free
+    maxmemoryPolicy: noeviction
+    ipAllowList: []   # internal connections only
+
+  - type: web
+    name: citriva-api
+    runtime: docker
+    plan: starter
+    healthCheckPath: /health
+    envVars: &common_env
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: citriva-redis
+          property: connectionString
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: GROBID_URL
+        sync: false
+      - key: UNPAYWALL_EMAIL
+        sync: false
+      - key: OPENALEX_MAILTO
+        sync: false
+      - key: TRUSTED_PROXY_COUNT
+        value: "1"
+
+  - type: worker
+    name: citriva-worker
+    runtime: docker
+    plan: starter
+    dockerCommand: celery -A app.worker.celery_app:celery_app worker --loglevel=INFO --concurrency=2 -Q citriva
+    envVars: *common_env

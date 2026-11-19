@@ -1,0 +1,147 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Cinzel:wght@500;600;700;800;900&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --cursor-x: 50vw;
+  --cursor-y: 30vh;
+  --heading-font: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+  --heading-letter-spacing: -0.03em;
+  --heading-transform: none;
+
+  /* 50 Shades of Blue Palette Tokens */
+  --b-ice: #f8fbff;
+  --b-mist: #f0f6fe;
+  --b-cloud: #e8f2fd;
+  --b-frost: #dbeafe;
+  --b-sky-light: #bfdbfe;
+  --b-cerulean-light: #93c5fd;
+  --b-azure-light: #60a5fa;
+  --b-cobalt-light: #3b82f6;
+  --b-primary: #1d4ed8;
+  --b-navy-mid: #1e40af;
+  --b-deep-navy: #1e3a8a;
+  --b-sapphire-dark: #172554;
+  --b-abyssal: #0f172a;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  color: #0f2744;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: #fbfdff;
+  background-image: 
+    radial-gradient(circle 900px at var(--cursor-x) var(--cursor-y), rgba(186, 230, 253, 0.55), transparent 70%),
+    radial-gradient(circle 1200px at 15% 15%, rgba(224, 242, 254, 0.7), transparent 80%),
+    radial-gradient(circle 1000px at 85% 85%, rgba(219, 234, 254, 0.6), transparent 75%),
+    linear-gradient(180deg, #ffffff 0%, #f4f8fe 50%, #edf4fd 100%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .font-royal {
+  font-family: var(--heading-font, 'Space Grotesk', sans-serif) !important;
+  letter-spacing: var(--heading-letter-spacing, -0.03em);
+}
+
+::selection {
+  background: rgba(186, 230, 253, 0.6);
+  color: #0c4a6e;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(2, 132, 199, 0.3) transparent;
+}
+
+@layer components {
+  /* Luminous Azure Porcelain Surfaces */
+  .glass {
+    @apply rounded-2xl border border-sky-200/80 bg-white/85 backdrop-blur-xl shadow-[0_10px_30px_-10px_rgba(12,74,110,0.08)];
+  }
+
+  .glass-hover {
+    @apply transition-all duration-200 hover:border-sky-400 hover:bg-white hover:shadow-[0_20px_40px_-12px_rgba(2,132,199,0.18)];
+  }
+
+  /* Solid non-glass bar for dashboard top header */
+  .dashboard-top-solid {
+    @apply bg-white/95 border-b border-blue-200 backdrop-blur-md shadow-sm;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-sky-500 via-blue-600 to-sky-700 text-white shadow-[0_8px_20px_-4px_rgba(2,132,199,0.45)] hover:from-sky-400 hover:via-blue-500 hover:to-sky-600 hover:shadow-[0_12px_28px_-2px_rgba(2,132,199,0.65)];
+  }
+
+  .btn-secondary {
+    @apply border border-blue-200 bg-blue-50/80 text-blue-900 hover:border-blue-400 hover:bg-blue-100/90;
+  }
+
+  .btn-ghost {
+    @apply border border-blue-200/50 bg-blue-50/30 text-blue-900 hover:border-blue-300 hover:bg-blue-100/60;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-blue-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-400/20;
+  }
+
+  .text-muted {
+    @apply text-slate-500;
+  }
+
+  .eyebrow {
+    @apply font-mono text-[11px] uppercase tracking-[0.14em] text-blue-700 font-bold;
+  }
+
+  .prof-note {
+    @apply rounded-xl border border-blue-200 bg-blue-50/70 p-3 text-xs leading-relaxed text-blue-950 shadow-sm;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up {
+  animation: fade-up 0.5s ease both;
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(32px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.slide-in {
+  animation: slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.azure-gradient-text {
+  background: linear-gradient(135deg, #0f2b48 0%, #026fc7 50%, #0ea5e9 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}

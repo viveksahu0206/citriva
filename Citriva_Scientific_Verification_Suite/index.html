@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Citriva — Scientific Claim and Citation Verification Suite</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Space Grotesk', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+            sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace']
+          },
+          colors: {
+            azure: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              200: '#b9e0fe',
+              300: '#7cc5fd',
+              400: '#36a8fa',
+              500: '#0c8ce9',
+              600: '#026fc7',
+              700: '#0358a1',
+              800: '#074b85',
+              900: '#0c3f6e',
+              950: '#082849'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Cinzel:wght@600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+    :root {
+      --cursor-x: 50vw;
+      --cursor-y: 30vh;
+      --heading-font: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+    }
+
+    html {
+      font-size: 16px;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      background-color: #fbfdff;
+      background-image:
+        radial-gradient(circle 900px at var(--cursor-x) var(--cursor-y), rgba(186, 230, 253, 0.55), transparent 70%),
+        radial-gradient(circle 1200px at 15% 15%, rgba(224, 242, 254, 0.7), transparent 80%),
+        radial-gradient(circle 1000px at 85% 85%, rgba(219, 234, 254, 0.6), transparent 75%),
+        linear-gradient(180deg, #ffffff 0%, #f4f8fe 50%, #edf4fd 100%);
+      background-attachment: fixed;
+      color: #0f2744;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Ambient Cursor Light Aura */
+    #cursor-light-aura {
+      pointer-events: none;
+      position: fixed;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.28) 0%, rgba(147, 197, 253, 0.18) 45%, transparent 70%);
+      transform: translate(-50%, -50%);
+      left: var(--cursor-x);
+      top: var(--cursor-y);
+      mix-blend-mode: multiply;
+      z-index: 9999;
+      transition: opacity 0.3s ease;
+    }
+
+    .glass-azure {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(186, 230, 253, 0.85);
+      box-shadow: 0 10px 30px -10px rgba(12, 74, 110, 0.08), 0 1px 3px 0 rgba(14, 165, 233, 0.06);
+      border-radius: 1.5rem;
+    }
+
+    .interactive-card {
+      transition: transform 0.18s ease-out, box-shadow 0.18s ease-out, border-color 0.18s ease;
+    }
+
+    .btn-azure-primary {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #075985 100%);
+      color: #ffffff;
+      font-weight: 700;
+      border-radius: 0.875rem;
+      padding: 0.75rem 1.5rem;
+      box-shadow: 0 8px 24px -4px rgba(2, 132, 199, 0.45);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-azure-primary:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+      box-shadow: 0 12px 30px -2px rgba(2, 132, 199, 0.65);
+      transform: translateY(-1px);
+    }
+
+    .btn-azure-secondary {
+      background: #f0f7ff;
+      border: 1px solid #bae6fd;
+      color: #0369a1;
+      font-weight: 700;
+      border-radius: 0.875rem;
+      padding: 0.75rem 1.5rem;
+      transition: all 0.2s ease;
+    }
+    .btn-azure-secondary:hover {
+      background: #e0f2fe;
+      border-color: #38bdf8;
+      color: #0c4a6e;
+    }
+
+    .font-royal {
+      font-family: var(--heading-font), sans-serif;
+      letter-spacing: -0.025em;
+    }
+    .font-editorial {
+      font-family: 'Playfair Display', Georgia, serif;
+    }
+    .azure-gradient-text {
+      background: linear-gradient(135deg, #0f2b48 0%, #026fc7 50%, #0ea5e9 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    /* Text Scale Enhancements */
+    .text-xs {
+      font-size: 0.8125rem !important; /* 13px */
+      line-height: 1.35rem !important;
+    }
+    .text-sm {
+      font-size: 0.9375rem !important; /* 15px */
+      line-height: 1.55rem !important;
+    }
+    .text-base {
+      font-size: 1.0625rem !important; /* 17px */
+      line-height: 1.75rem !important;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-sky-200 selection:text-sky-900">
+
+  <div id="cursor-light-aura"></div>
+
+  <!-- Dedicated Landing Header -->
+  <header class="sticky top-0 z-40 px-4 pt-3.5">
+    <nav class="glass-azure mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 bg-white/90">
+      <a href="index.html" class="flex items-center gap-3 group">
+        <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-700 via-sky-600 to-indigo-900 text-white shadow-[0_4px_20px_rgba(2,132,199,0.4)] border border-sky-300/40 group-hover:scale-105 transition-all">
+          <svg class="w-7 h-7" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="idxRGlyph" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" />
+                <stop offset="60%" stop-color="#f0f9ff" />
+                <stop offset="100%" stop-color="#bae6fd" />
+              </linearGradient>
+              <linearGradient id="idxROrbit" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.95" />
+                <stop offset="50%" stop-color="#818cf8" stop-opacity="0.7" />
+                <stop offset="100%" stop-color="#00d4ff" stop-opacity="0.95" />
+              </linearGradient>
+              <filter id="idxRGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="1.5" stdDeviation="1.2" flood-color="#0369a1" flood-opacity="0.55"/>
+              </filter>
+            </defs>
+            <ellipse cx="20" cy="20" rx="17" ry="10" transform="rotate(-28 20 20)" stroke="url(#idxROrbit)" stroke-width="1.5" stroke-dasharray="3 2.5" opacity="0.8" />
+            <circle cx="5.5" cy="15" r="1.8" fill="#38bdf8" />
+            <circle cx="5.5" cy="15" r="0.8" fill="#ffffff" />
+            <g filter="url(#idxRGlow)">
+              <path d="M10 8 H15.5 V32 H10 V8 Z" fill="url(#idxRGlyph)" />
+              <path d="M8 8 H17.5 V10.5 H8 V8 Z" fill="url(#idxRGlyph)" />
+              <path d="M8 29.5 H17.5 V32 H8 V29.5 Z" fill="url(#idxRGlyph)" />
+              <path d="M15.5 8 H24.5 C29.1944 8 33 11.3579 33 15.5 C33 19.6421 29.1944 23 24.5 23 H15.5 V19 H24 C26.2091 19 28 17.433 28 15.5 C28 13.567 26.2091 12 24 12 H15.5 V8 Z" fill="url(#idxRGlyph)" />
+              <path d="M21 21.5 L28.5 32 H34.5 L26.2 20.8 C24.6 21.3 22.8 21.5 21 21.5 Z" fill="url(#idxRGlyph)" />
+            </g>
+            <polygon points="32.5,5 34.8,8 32.5,11 30.2,8" fill="#00d4ff" />
+            <circle cx="32.5" cy="8" r="1.2" fill="#ffffff" />
+          </svg>
+        </span>
+        <div class="flex flex-col">
+          <span class="font-royal font-bold text-2xl tracking-tight text-slate-900 group-hover:text-blue-700 transition-colors">Citriva</span>
+          <span class="font-mono text-xs uppercase tracking-widest text-blue-600 font-bold -mt-0.5">Research Verification</span>
+        </div>
+      </a>
+
+      <div class="hidden md:flex items-center gap-8 text-sm font-bold text-slate-600">
+        <a href="#four-pillars-live" class="hover:text-blue-700 transition flex items-center gap-1.5 text-blue-700">
+          <i data-lucide="sparkles" class="w-4 h-4 text-blue-600"></i>
+          4-Pillar Sandbox
+        </a>
+        <a href="#features" class="hover:text-blue-700 transition">Architecture</a>
+        <a href="#how-it-works" class="hover:text-blue-700 transition">Pipeline</a>
+        <a href="#faq" class="hover:text-blue-700 transition">FAQ</a>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Dedicated Link to Login Page -->
+        <a href="login.html" class="px-4 py-2 text-sm font-bold text-blue-900 border border-blue-300 bg-blue-50/80 rounded-xl hover:bg-blue-100 transition flex items-center gap-1.5 shadow-xs">
+          <i data-lucide="user-check" class="w-4 h-4 text-blue-600"></i>
+          <span>Sign In / Profile</span>
+        </a>
+        <!-- Dedicated Link to Dashboard Page with Auth Guard -->
+        <a href="dashboard.html" onclick="navigateToDashboard(event)" id="nav-dash-link" class="btn-azure-primary text-sm flex items-center gap-2">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span id="nav-dash-label">Enter Dashboard</span>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ==================================================================== -->
+  <!-- 🏛️ DEDICATED LANDING VIEW — NO TOP OVERHEAD CLUTTER & NO WORKSPACE HEADING 🏛️ -->
+  <!-- ==================================================================== -->
+  <main class="space-y-24 pb-20">
+
+    <!-- Hero Section (Direct, Immediate Impact) -->
+    <section class="mx-auto grid max-w-7xl items-center gap-10 px-6 pt-12 lg:grid-cols-2 lg:gap-14 lg:pt-16">
+      <div class="space-y-6">
+
+        <h1 class="font-royal text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.12] text-slate-900 tracking-tight">
+          Verify whether research papers <span class="azure-gradient-text">actually substantiate</span> what they cite.
+        </h1>
+
+        <p class="font-editorial text-xl sm:text-2xl leading-relaxed text-slate-700 italic">
+          Citriva extracts cited empirical statements, resolves references across open scholarly graphs (OpenAlex, Semantic Scholar, Unpaywall), and executes bounded Natural Language Inference with strict verbatim quote grounding.
+        </p>
+
+        <div class="grid grid-cols-2 gap-3.5 pt-2 text-sm font-bold text-slate-800">
+          <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-blue-50/70 border border-blue-100">
+            <i data-lucide="check-circle" class="w-4 h-4 text-blue-600"></i>
+            <span>Overclaim Detection</span>
+          </div>
+          <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-blue-50/70 border border-blue-100">
+            <i data-lucide="check-circle" class="w-4 h-4 text-blue-600"></i>
+            <span>Cross-Reference Audit</span>
+          </div>
+          <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-blue-50/70 border border-blue-100">
+            <i data-lucide="check-circle" class="w-4 h-4 text-blue-600"></i>
+            <span>Research Gap Tagging</span>
+          </div>
+          <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-blue-50/70 border border-blue-100">
+            <i data-lucide="check-circle" class="w-4 h-4 text-blue-600"></i>
+            <span>Evidence Traceability</span>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-4 pt-3">
+          <a href="dashboard.html" onclick="navigateToDashboard(event)" class="btn-azure-primary text-base flex items-center gap-2.5 px-7 py-4 shadow-lg">
+            <i data-lucide="microscope" class="w-5 h-5"></i>
+            Verify Research Manuscript
+          </a>
+          <a href="login.html" class="btn-azure-secondary text-base flex items-center gap-2.5 px-6 py-4 shadow-xs">
+            <i data-lucide="user-plus" class="w-5 h-5 text-blue-600"></i>
+            Create Academic Profile
+          </a>
+          <a href="#four-pillars-live" class="px-5 py-4 rounded-xl border border-blue-200 text-slate-700 hover:text-blue-900 hover:bg-blue-50/70 font-bold text-sm flex items-center gap-2 transition">
+            <i data-lucide="cpu" class="w-4 h-4 text-blue-600"></i>
+            4 Pillars Sandbox
+          </a>
+        </div>
+
+        <div class="rounded-2xl border border-blue-200/90 bg-gradient-to-r from-blue-50/80 to-sky-50/80 p-5 text-sm text-slate-800 leading-relaxed shadow-sm">
+          <span class="font-bold text-blue-900 font-mono text-xs uppercase tracking-wider block mb-1">Professor Aria Voss's Note:</span>
+          Calling an LLM is the trivial part. Reliable scientific verification demands (1) multi-column PDF layout parsing, (2) waterfall bibliographic resolution, and (3) mathematical quote containment to make hallucinated verdicts impossible.
+        </div>
+      </div>
+
+      <!-- Interactive Hero Diagnostic Card with 3D Tilt -->
+      <div class="glass-azure p-8 relative border-blue-200 bg-white/95 interactive-card shadow-xl">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2.5">
+            <span class="h-3 w-3 rounded-full bg-blue-600 animate-pulse"></span>
+            <span class="font-mono text-xs uppercase tracking-wider text-blue-800 font-bold">Interactive Verification Diagnostic</span>
+          </div>
+          <span id="hero-badge" class="font-mono text-xs uppercase tracking-wider px-3.5 py-1 rounded-full border border-rose-300 bg-rose-50 text-rose-700 font-bold">
+            Overclaim Detected
+          </span>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex gap-2 mb-4 overflow-x-auto pb-1 text-sm font-semibold">
+          <button onclick="setHeroSample(0)" id="hero-tab-0" class="px-3.5 py-1.5 rounded-xl border border-blue-500 bg-blue-100 text-blue-900 font-bold shadow-xs">Radiology</button>
+          <button onclick="setHeroSample(1)" id="hero-tab-1" class="px-3.5 py-1.5 rounded-xl border border-blue-200 text-slate-600 hover:text-blue-800">Kidney Trial</button>
+          <button onclick="setHeroSample(2)" id="hero-tab-2" class="px-3.5 py-1.5 rounded-xl border border-blue-200 text-slate-600 hover:text-blue-800">Photovoltaics</button>
+          <button onclick="setHeroSample(3)" id="hero-tab-3" class="px-3.5 py-1.5 rounded-xl border border-blue-200 text-slate-600 hover:text-blue-800">CRISPR</button>
+        </div>
+
+        <!-- Citing Statement -->
+        <div class="space-y-1.5 mb-4">
+          <p class="font-mono text-xs uppercase tracking-wider text-blue-700 font-bold">Citing Manuscript Statement</p>
+          <blockquote id="hero-claim" class="font-editorial text-lg sm:text-xl leading-snug text-slate-900 border-l-4 border-blue-600 pl-4 py-2 bg-blue-50/40 rounded-r-xl">
+            "The foundation vision-language model achieved <mark class="bg-rose-100 text-rose-800 px-1 py-0.5 rounded font-semibold border-b border-rose-400">100% sensitivity across 14 thoracic pathologies</mark> without producing false-positive pneumothorax alerts."
+          </blockquote>
+        </div>
+
+        <!-- Citation Metadata -->
+        <div class="rounded-xl border border-blue-100 bg-blue-50/50 p-4 mb-4 text-xs">
+          <div class="flex items-center gap-2 text-blue-700 font-bold mb-1">
+            <i data-lucide="link" class="w-4 h-4"></i>
+            <span id="hero-citation-raw">[5] Rajpurkar et al., 2018 (PLOS Medicine)</span>
+          </div>
+          <p id="hero-citation-title" class="text-slate-800 font-bold text-sm">Deep learning for chest radiograph diagnosis</p>
+          <p id="hero-citation-doi" class="font-mono text-xs text-blue-600 mt-1 font-semibold">doi:10.1371/journal.pmed.1002686</p>
+        </div>
+
+        <!-- Verdict Pill -->
+        <div class="flex items-center justify-between border-t border-blue-100 pt-3.5 mb-3">
+          <div class="flex items-center gap-2.5">
+            <span id="hero-verdict-pill" class="px-3.5 py-1 rounded-full font-mono text-xs font-bold uppercase tracking-wide border border-rose-300 bg-rose-50 text-rose-700">
+              UNSUPPORTED
+            </span>
+            <span class="inline-flex items-center gap-1 font-mono text-xs uppercase px-3 py-1 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 font-bold">
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-indigo-600"></i>
+              Needs Review
+            </span>
+          </div>
+          <span id="hero-conf-text" class="font-mono text-sm text-blue-800 font-bold">96% Confidence</span>
+        </div>
+
+        <!-- Verbatim Quote Comparison -->
+        <div class="rounded-xl border border-blue-200 bg-white p-4 space-y-2 shadow-sm">
+          <span class="font-mono text-xs uppercase tracking-wider text-blue-800 font-bold block">Verbatim Retrieved Evidence Quote</span>
+          <p id="hero-quote" class="font-editorial text-sm sm:text-base text-slate-800 italic bg-blue-50/50 p-3 rounded-lg border border-blue-100 leading-relaxed">
+            "CheXNet achieved an F1 score of 0.435 (95% CI 0.387, 0.481) on pneumonia detection, exceeding average radiologist performance."
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIVE 4-PILLAR INTERACTIVE SANDBOX -->
+    <section id="four-pillars-live" class="mx-auto max-w-7xl px-6">
+      <div class="glass-azure p-8 sm:p-12 border-2 border-blue-300 bg-white/95 shadow-xl space-y-8">
+        <div class="text-center max-w-3xl mx-auto space-y-2">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold font-mono uppercase tracking-wider">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            Interactive Verification Core
+          </div>
+          <h2 class="font-royal text-3xl sm:text-4xl font-extrabold text-slate-900">
+            The Four Core Verification Pillars
+          </h2>
+          <p class="text-base text-slate-600 font-editorial italic">
+            Test how each pillar diagnoses claims and enforces character-for-character quote grounding.
+          </p>
+        </div>
+
+        <!-- 4 Pillar Selection Grid -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <button onclick="selectPillar(1)" id="p-tab-1" class="glass-azure p-5 text-left border-blue-300 bg-blue-50/80 transition-all shadow-sm interactive-card">
+            <span class="p-2.5 rounded-xl bg-blue-100 text-blue-700 border border-blue-300 inline-block mb-2"><i data-lucide="git-compare" class="w-5 h-5"></i></span>
+            <h4 class="font-royal font-bold text-base text-slate-900">1. Cross-Reference</h4>
+            <p class="text-xs text-slate-600 mt-1">Multi-source consensus checking</p>
+          </button>
+
+          <button onclick="selectPillar(2)" id="p-tab-2" class="glass-azure p-5 text-left border-blue-200 transition-all interactive-card">
+            <span class="p-2.5 rounded-xl bg-amber-100 text-amber-700 border border-amber-300 inline-block mb-2"><i data-lucide="search" class="w-5 h-5"></i></span>
+            <h4 class="font-royal font-bold text-base text-slate-900">2. Research Gap</h4>
+            <p class="text-xs text-slate-600 mt-1">Boundary & scope insufficiency</p>
+          </button>
+
+          <button onclick="selectPillar(3)" id="p-tab-3" class="glass-azure p-5 text-left border-blue-200 transition-all interactive-card">
+            <span class="p-2.5 rounded-xl bg-rose-100 text-rose-700 border border-rose-300 inline-block mb-2"><i data-lucide="alert-octagon" class="w-5 h-5"></i></span>
+            <h4 class="font-royal font-bold text-base text-slate-900">3. Overclaim</h4>
+            <p class="text-xs text-slate-600 mt-1">Statistical conclusion inflation</p>
+          </button>
+
+          <button onclick="selectPillar(4)" id="p-tab-4" class="glass-azure p-5 text-left border-blue-200 transition-all interactive-card">
+            <span class="p-2.5 rounded-xl bg-emerald-100 text-emerald-700 border border-emerald-300 inline-block mb-2"><i data-lucide="map-pin" class="w-5 h-5"></i></span>
+            <h4 class="font-royal font-bold text-base text-slate-900">4. Traceability</h4>
+            <p class="text-xs text-slate-600 mt-1">Exact verbatim quote pointers</p>
+          </button>
+        </div>
+
+        <!-- Pillar Sandbox Display Box -->
+        <div id="pillar-sandbox-display" class="p-6 sm:p-8 rounded-2xl border border-blue-200 bg-blue-50/50 space-y-4"></div>
+      </div>
+    </section>
+
+    <!-- ARCHITECTURE & PIPELINE -->
+    <section id="features" class="mx-auto max-w-7xl px-6">
+      <div class="mb-12 max-w-2xl">
+        <p class="font-mono text-xs uppercase tracking-wider text-blue-700 font-bold mb-1">Architecture</p>
+        <h2 class="font-royal text-3xl font-bold text-slate-900">Four Checks, One Auditable Scorecard</h2>
+      </div>
+
+      <div class="grid gap-6 sm:grid-cols-4">
+        <div class="glass-azure p-6 border-blue-200 interactive-card">
+          <span class="font-royal text-2xl font-bold text-blue-700 mb-2 block">01</span>
+          <h4 class="font-royal font-bold text-slate-900 text-base mb-1.5">Extract Claims</h4>
+          <p class="text-sm text-slate-600 leading-relaxed">TEI-XML structural segmentation pulls out empirical claims with 2-sentence context windows.</p>
+        </div>
+        <div class="glass-azure p-6 border-blue-200 interactive-card">
+          <span class="font-royal text-2xl font-bold text-blue-700 mb-2 block">02</span>
+          <h4 class="font-royal font-bold text-slate-900 text-base mb-1.5">Match Sources</h4>
+          <p class="text-sm text-slate-600 leading-relaxed">Waterfall resolution across OpenAlex, Semantic Scholar, and Unpaywall finds authentic DOIs and OA PDFs.</p>
+        </div>
+        <div class="glass-azure p-6 border-blue-200 interactive-card">
+          <span class="font-royal text-2xl font-bold text-blue-700 mb-2 block">03</span>
+          <h4 class="font-royal font-bold text-slate-900 text-base mb-1.5">Verify Evidence</h4>
+          <p class="text-sm text-slate-600 leading-relaxed">Top passages embedded into pgvector are audited with strict verbatim substring matching and zero temperature.</p>
+        </div>
+        <div class="glass-azure p-6 border-blue-200 interactive-card">
+          <span class="font-royal text-2xl font-bold text-blue-700 mb-2 block">04</span>
+          <h4 class="font-royal font-bold text-slate-900 text-base mb-1.5">Audit Scorecard</h4>
+          <p class="text-sm text-slate-600 leading-relaxed">Uncertain, contradictory, or overclaimed citations are compiled into an immutable %PDF-1.4 report.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="mx-auto max-w-4xl px-6 space-y-4">
+      <h2 class="font-royal text-3xl font-bold text-center text-slate-900 mb-6">Frequently Answered Questions</h2>
+      <div class="glass-azure p-6 border-blue-200 space-y-2">
+        <p class="font-bold text-base text-slate-900 font-royal">How does Citriva prevent hallucination in verdicts?</p>
+        <p class="text-sm text-slate-600 leading-relaxed">Temperature is pinned to 0; models judge exclusively from supplied passages without using parametric world knowledge; and every returned evidence quote must be a verified character-for-character substring in code.</p>
+      </div>
+      <div class="glass-azure p-6 border-blue-200 space-y-2">
+        <p class="font-bold text-base text-slate-900 font-royal">What export formats are supported?</p>
+        <p class="text-sm text-slate-600 leading-relaxed">Citriva compiles complete, publication-grade academic PDF reports (strictly PDF only) formatted for peer-review panels, journal editors, and grant audit boards.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-10 text-center text-sm text-slate-500 font-mono border-t border-blue-100 bg-white space-y-2">
+    <div class="flex items-center justify-center gap-2">
+      <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-700 text-white text-[10px] font-bold">R</span>
+      <span class="font-royal font-bold text-slate-800 text-base">Citriva Suite</span>
+    </div>
+    <p>Scientific Document Intelligence & Rigorous Research Verification • Directed by Prof. Aria Voss</p>
+  </footer>
+
+  <script>
+    // Cursor Physics
+    document.addEventListener('mousemove', (e) => {
+      document.documentElement.style.setProperty('--cursor-x', `${e.clientX}px`);
+      document.documentElement.style.setProperty('--cursor-y', `${e.clientY}px`);
+    });
+
+    const HERO_SAMPLES = [
+      {
+        claim: "The foundation vision-language model achieved 100% sensitivity across 14 thoracic pathologies without producing false-positive pneumothorax alerts.",
+        raw: "[5] Rajpurkar et al., 2018 (PLOS Medicine)",
+        title: "Deep learning for chest radiograph diagnosis",
+        doi: "10.1371/journal.pmed.1002686",
+        verdict: "UNSUPPORTED",
+        conf: "96.4% Confidence",
+        badge: "Overclaim Detected",
+        quote: "CheXNet achieved an F1 score of 0.435 (95% CI 0.387, 0.481) on pneumonia detection, exceeding average radiologist performance."
+      },
+      {
+        claim: "Dapagliflozin reduces risk of composite sustained eGFR decline by 44% in patients with CKD.",
+        raw: "[1] Heerspink et al., 2020 (NEJM)",
+        title: "Dapagliflozin in Patients with Chronic Kidney Disease",
+        doi: "10.1056/NEJMoa2024816",
+        verdict: "SUPPORTED",
+        conf: "98.7% Confidence",
+        badge: "Grounded & Verified",
+        quote: "The hazard ratio for the primary composite outcome was 0.56 (95% CI, 0.45 to 0.68; P<0.001) in favor of dapagliflozin."
+      },
+      {
+        claim: "Perovskite-silicon tandem cells demonstrate 33.2% operational efficiency under continuous 1-sun illumination without phase degradation.",
+        raw: "[8] Al-Ashouri et al., 2020 (Science)",
+        title: "Monolithic perovskite/silicon tandem solar cells",
+        doi: "10.1126/science.abd4016",
+        verdict: "PARTIALLY_SUPPORTED",
+        conf: "84.2% Confidence",
+        badge: "Research Gap Tagged",
+        quote: "Tandem devices reached an initial certified efficiency of 29.15%, maintaining 95% of initial efficiency after 300 hours."
+      },
+      {
+        claim: "CRISPR-Cas12a demonstrates zero detectable off-target cleavage across 12 human genomic loci under high-dose ribonucleoprotein delivery.",
+        raw: "[12] Kim et al., 2016 (Nature Biotechnology)",
+        title: "Genome-wide analysis of Cas12a off-target effects",
+        doi: "10.1038/nbt.3609",
+        verdict: "CONTRADICTORY",
+        conf: "91.5% Confidence",
+        badge: "Literature Split",
+        quote: "Digenome-seq captured 14 off-target cleavages at loci containing up to two mismatches when delivered via RNP."
+      }
+    ];
+
+    function setHeroSample(idx) {
+      [0, 1, 2, 3].forEach(i => {
+        const t = document.getElementById('hero-tab-' + i);
+        if (i === idx) t.className = "px-3.5 py-1.5 rounded-xl border border-blue-500 bg-blue-100 text-blue-900 font-bold shadow-xs";
+        else t.className = "px-3.5 py-1.5 rounded-xl border border-blue-200 text-slate-600 hover:text-blue-800";
+      });
+
+      const s = HERO_SAMPLES[idx];
+      document.getElementById('hero-claim').textContent = `"${s.claim}"`;
+      document.getElementById('hero-citation-raw').textContent = s.raw;
+      document.getElementById('hero-citation-title').textContent = s.title;
+      document.getElementById('hero-citation-doi').textContent = "doi:" + s.doi;
+      document.getElementById('hero-verdict-pill').textContent = s.verdict;
+      document.getElementById('hero-conf-text').textContent = s.conf;
+      document.getElementById('hero-badge').textContent = s.badge;
+      document.getElementById('hero-quote').textContent = `"${s.quote}"`;
+
+      const p = document.getElementById('hero-verdict-pill');
+      if (s.verdict === 'SUPPORTED') {
+        p.className = "px-3.5 py-1 rounded-full font-mono text-xs font-bold uppercase tracking-wide border border-emerald-300 bg-emerald-50 text-emerald-800";
+      } else if (s.verdict === 'PARTIALLY_SUPPORTED') {
+        p.className = "px-3.5 py-1 rounded-full font-mono text-xs font-bold uppercase tracking-wide border border-amber-300 bg-amber-50 text-amber-800";
+      } else {
+        p.className = "px-3.5 py-1 rounded-full font-mono text-xs font-bold uppercase tracking-wide border border-rose-300 bg-rose-50 text-rose-800";
+      }
+    }
+
+    const PILLAR_CONFIGS = {
+      1: {
+        badge: "Pillar 1: Cross-Reference Verification",
+        title: "Multi-Source Literature Consensus Analysis",
+        paperTitle: "Deep learning for chest radiograph diagnosis",
+        doi: "10.1371/journal.pmed.1002686",
+        verdict: "UNSUPPORTED",
+        confidence: "96.4%",
+        quote: "CheXNet achieved an F1 score of 0.435 (95% CI 0.387, 0.481) on pneumonia detection, exceeding average radiologist performance.",
+        renderFeature: () => `
+          <div class="p-4 rounded-2xl border border-blue-200 bg-white space-y-3 shadow-xs">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-800">Literature Consensus Ratio</span>
+              <span class="font-mono font-bold text-rose-700">1 Agree / 4 Conflict</span>
+            </div>
+            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden flex">
+              <div class="bg-emerald-500 h-full" style="width: 20%"></div>
+              <div class="bg-rose-500 h-full" style="width: 80%"></div>
+            </div>
+            <p class="text-xs text-slate-600">4 independent trials report significant false positives on external cohorts, directly refuting the manuscript claim.</p>
+          </div>
+        `
+      },
+      2: {
+        badge: "Pillar 2: Research Gap Identification",
+        title: "Experimental Boundary & Scope Insufficiency",
+        paperTitle: "External Validation of Deep Learning in Radiology",
+        doi: "10.1038/s41746-020-00322-2",
+        verdict: "PARTIALLY_SUPPORTED",
+        confidence: "82.1%",
+        quote: "Performance dropped by 11.2% AUC when evaluated on out-of-distribution community clinic imaging systems without calibration.",
+        renderFeature: () => `
+          <div class="p-4 rounded-2xl border border-amber-200 bg-amber-50/60 space-y-2">
+            <span class="font-mono text-xs uppercase text-amber-800 font-bold block">Identified Research Gap</span>
+            <p class="text-sm font-bold text-slate-900">Untested Clinical Variable: Hospital Scanner Hardware Heterogeneity</p>
+            <p class="text-xs text-slate-700">The cited paper was evaluated only on Siemens scanners; the citing claim generalized to all clinic hardware.</p>
+          </div>
+        `
+      },
+      3: {
+        badge: "Pillar 3: Overclaim Detection",
+        title: "Statistical Hyperbole & Conclusion Inflation",
+        paperTitle: "CheXNet: Radiologist-Level Pneumonia Detection on Chest X-Rays",
+        doi: "10.1371/journal.pmed.1002686",
+        verdict: "UNSUPPORTED",
+        confidence: "96.4%",
+        quote: "CheXNet achieved an F1 score of 0.435 (95% CI 0.387, 0.481) on pneumonia detection, exceeding average radiologist performance.",
+        renderFeature: () => `
+          <div class="p-4 rounded-2xl border border-rose-200 bg-rose-50/60 space-y-2">
+            <span class="font-mono text-xs uppercase text-rose-800 font-bold block">Overclaim Flag</span>
+            <div class="text-xs space-y-1">
+              <p><strong>Manuscript asserts:</strong> "100% sensitivity across 14 pathologies"</p>
+              <p><strong>Source data establishes:</strong> "F1 score 0.435 on pneumonia"</p>
+            </div>
+          </div>
+        `
+      },
+      4: {
+        badge: "Pillar 4: Evidence Traceability",
+        title: "Character-for-Character Verbatim Substring Grounding",
+        paperTitle: "Dapagliflozin in Patients with Chronic Kidney Disease",
+        doi: "10.1056/NEJMoa2024816",
+        verdict: "SUPPORTED",
+        confidence: "98.7%",
+        quote: "The hazard ratio for the primary composite outcome was 0.56 (95% CI, 0.45 to 0.68; P<0.001) in favor of dapagliflozin.",
+        renderFeature: () => `
+          <div class="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 space-y-2">
+            <span class="font-mono text-xs uppercase text-emerald-800 font-bold block">Sentence Grounding Pointer</span>
+            <div class="flex items-center justify-between text-xs font-mono font-bold text-emerald-900">
+              <span>Page: 6</span>
+              <span>Section: Results — Primary</span>
+              <span>Sentence ID: #P-044-S3</span>
+            </div>
+            <p class="text-xs text-emerald-800">100% character-for-character verbatim match verified in source PDF text stream.</p>
+          </div>
+        `
+      }
+    };
+
+    function selectPillar(pNum) {
+      [1, 2, 3, 4].forEach(n => {
+        const btn = document.getElementById('p-tab-' + n);
+        if (btn) {
+          if (n === pNum) {
+            btn.className = "glass-azure p-5 text-left border-blue-400 bg-blue-50/80 transition-all shadow-sm interactive-card";
+          } else {
+            btn.className = "glass-azure p-5 text-left border-blue-200 transition-all interactive-card";
+          }
+        }
+      });
+
+      const cfg = PILLAR_CONFIGS[pNum];
+      const box = document.getElementById('pillar-sandbox-display');
+      box.innerHTML = `
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="font-mono text-xs uppercase font-bold text-blue-700">${cfg.badge}</span>
+              <h3 class="font-royal text-2xl font-bold text-slate-900">${cfg.title}</h3>
+            </div>
+            <span class="px-3.5 py-1 rounded-full font-mono text-xs font-bold uppercase tracking-wider ${
+              cfg.verdict === 'SUPPORTED' ? 'bg-emerald-50 text-emerald-800 border border-emerald-300' : 'bg-rose-50 text-rose-800 border border-rose-300'
+            }">${cfg.verdict}</span>
+          </div>
+          <div class="p-4 rounded-xl border border-blue-200 bg-white space-y-1 shadow-xs">
+            <span class="font-mono text-xs uppercase text-blue-800 font-bold">Audited Source Paper</span>
+            <p class="font-bold text-sm text-slate-900">${cfg.paperTitle} • <span class="font-mono text-blue-700">doi:${cfg.doi}</span></p>
+          </div>
+          ${cfg.renderFeature()}
+          <div class="p-4 rounded-xl border border-blue-200 bg-white space-y-1 shadow-xs">
+            <span class="font-mono text-xs uppercase text-blue-800 font-bold">Verbatim Retrieved Evidence Quote</span>
+            <p class="font-editorial text-sm sm:text-base text-slate-800 italic bg-blue-50/60 p-3.5 rounded-xl border border-blue-100">"${cfg.quote}"</p>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    selectPillar(1);
+
+    // Authentication State & Safe Navigation
+    function navigateToDashboard(e) {
+      if (e) e.preventDefault();
+      try {
+        const user = JSON.parse(localStorage.getItem('citriva_active_user') || 'null');
+        if (user && user.verified) {
+          window.location.href = 'dashboard.html';
+        } else {
+          window.location.href = 'login.html?auth_required=1';
+        }
+      } catch (err) {
+        window.location.href = 'login.html?auth_required=1';
+      }
+    }
+
+    // Dynamic Navigation Hydration
+    (function() {
+      try {
+        const user = JSON.parse(localStorage.getItem('citriva_active_user') || 'null');
+        if (user && user.verified) {
+          const navLabel = document.getElementById('nav-dash-label');
+          if (navLabel) navLabel.textContent = 'Open Workspace (' + (user.name.split(' ')[0] || 'Auditor') + ')';
+        }
+      } catch(e) {}
+    })();
+
+    lucide.createIcons();
+  </script>
+</body>
+</html>

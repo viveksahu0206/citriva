@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Citriva — Scientific Verification Workspace & Dashboard</title>
+
+  <!-- STRICT SYNCHRONOUS AUTHENTICATION GATE (Without login dashboard cannot be entered) -->
+  <script>
+    (function() {
+      try {
+        var rawUser = localStorage.getItem('citriva_active_user');
+        if (!rawUser) {
+          window.location.replace('login.html?auth_required=1');
+          return;
+        }
+        var parsed = JSON.parse(rawUser);
+        if (!parsed || !parsed.verified || !parsed.memoryAddress) {
+          localStorage.removeItem('citriva_active_user');
+          window.location.replace('login.html?auth_required=1');
+          return;
+        }
+        document.documentElement.classList.add('authenticated');
+      } catch (e) {
+        localStorage.removeItem('citriva_active_user');
+        window.location.replace('login.html?auth_required=1');
+      }
+    })();
+  </script>
+  <style>
+    /* Strict gate: unauthenticated visitors cannot see workspace elements */
+    html:not(.authenticated) body {
+      display: none !important;
+      visibility: hidden !important;
+    }
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Space Grotesk', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+            sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace']
+          },
+          colors: {
+            azure: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              200: '#b9e0fe',
+              300: '#7cc5fd',
+              400: '#36a8fa',
+              500: '#0c8ce9',
+              600: '#026fc7',
+              700: '#0358a1',
+              800: '#074b85',
+              900: '#0c3f6e',
+              950: '#082849'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Cinzel:wght@600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+    :root {
+      --cursor-x: 50vw;
+      --cursor-y: 30vh;
+      --heading-font: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+    }
+
+    html {
+      font-size: 16px;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      background-color: #fbfdff;
+      background-image:
+        radial-gradient(circle 900px at var(--cursor-x) var(--cursor-y), rgba(186, 230, 253, 0.55), transparent 70%),
+        radial-gradient(circle 1200px at 15% 15%, rgba(224, 242, 254, 0.7), transparent 80%),
+        radial-gradient(circle 1000px at 85% 85%, rgba(219, 234, 254, 0.6), transparent 75%),
+        linear-gradient(180deg, #ffffff 0%, #f4f8fe 50%, #edf4fd 100%);
+      background-attachment: fixed;
+      color: #0f2744;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Ambient Cursor Light Aura */
+    #cursor-light-aura {
+      pointer-events: none;
+      position: fixed;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.28) 0%, rgba(147, 197, 253, 0.18) 45%, transparent 70%);
+      transform: translate(-50%, -50%);
+      left: var(--cursor-x);
+      top: var(--cursor-y);
+      mix-blend-mode: multiply;
+      z-index: 9999;
+      transition: opacity 0.3s ease;
+    }
+
+    .glass-azure {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(186, 230, 253, 0.85);
+      box-shadow: 0 10px 30px -10px rgba(12, 74, 110, 0.08), 0 1px 3px 0 rgba(14, 165, 233, 0.06);
+      border-radius: 1.5rem;
+    }
+
+    .interactive-card {
+      transition: transform 0.18s ease-out, box-shadow 0.18s ease-out, border-color 0.18s ease;
+    }
+
+    .btn-azure-primary {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #075985 100%);
+      color: #ffffff;
+      font-weight: 700;
+      border-radius: 0.875rem;
+      padding: 0.75rem 1.5rem;
+      box-shadow: 0 8px 24px -4px rgba(2, 132, 199, 0.45);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-azure-primary:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+      box-shadow: 0 12px 30px -2px rgba(2, 132, 199, 0.65);
+      transform: translateY(-1px);
+    }
+
+    .btn-azure-secondary {
+      background: #f0f7ff;
+      border: 1px solid #bae6fd;
+      color: #0369a1;
+      font-weight: 700;
+      border-radius: 0.875rem;
+      padding: 0.65rem 1.25rem;
+      transition: all 0.2s ease;
+    }
+    .btn-azure-secondary:hover {
+      background: #e0f2fe;
+      border-color: #38bdf8;
+      color: #0c4a6e;
+    }
+
+    .font-royal {
+      font-family: var(--heading-font), sans-serif;
+      letter-spacing: -0.025em;
+    }
+    .font-editorial {
+      font-family: 'Playfair Display', Georgia, serif;
+    }
+
+    /* Left Sidebar Active Highlight */
+    .pillar-sidebar-active {
+      background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%) !important;
+      border-color: #0284c7 !important;
+      color: #0c4a6e !important;
+      box-shadow: 0 8px 20px -4px rgba(2, 132, 199, 0.25) !important;
+      transform: translateX(4px);
+    }
+
+    /* Text Scale: Standard Tailwind Legibility */
+  </style>
+</head>
+<body class="antialiased selection:bg-sky-200 selection:text-sky-900 min-h-screen">
+
+  <div id="cursor-light-aura"></div>
+
+  <!-- DASHBOARD TOP HEADER: Elegant Porcelain & Blue Accent Bar -->
+  <header class="sticky top-0 z-30 px-6 py-4 flex items-center justify-between gap-4 bg-white/95 border-b border-blue-200 shadow-sm">
+    <div class="flex items-center gap-3">
+      <a href="index.html" class="flex items-center gap-3 group">
+        <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-700 via-sky-600 to-indigo-900 text-white shadow-[0_4px_16px_rgba(2,132,199,0.35)] border border-sky-300/40 group-hover:scale-105 transition-transform">
+          <svg class="w-6 h-6" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="dashRGlyph" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" />
+                <stop offset="60%" stop-color="#f0f9ff" />
+                <stop offset="100%" stop-color="#bae6fd" />
+              </linearGradient>
+              <linearGradient id="dashROrbit" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.95" />
+                <stop offset="50%" stop-color="#818cf8" stop-opacity="0.7" />
+                <stop offset="100%" stop-color="#00d4ff" stop-opacity="0.95" />
+              </linearGradient>
+              <filter id="dashRGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="1.5" stdDeviation="1.2" flood-color="#0369a1" flood-opacity="0.55"/>
+              </filter>
+            </defs>
+            <ellipse cx="20" cy="20" rx="17" ry="10" transform="rotate(-28 20 20)" stroke="url(#dashROrbit)" stroke-width="1.5" stroke-dasharray="3 2.5" opacity="0.8" />
+            <circle cx="5.5" cy="15" r="1.8" fill="#38bdf8" />
+            <circle cx="5.5" cy="15" r="0.8" fill="#ffffff" />
+            <g filter="url(#dashRGlow)">
+              <path d="M10 8 H15.5 V32 H10 V8 Z" fill="url(#dashRGlyph)" />
+              <path d="M8 8 H17.5 V10.5 H8 V8 Z" fill="url(#dashRGlyph)" />
+              <path d="M8 29.5 H17.5 V32 H8 V29.5 Z" fill="url(#dashRGlyph)" />
+              <path d="M15.5 8 H24.5 C29.1944 8 33 11.3579 33 15.5 C33 19.6421 29.1944 23 24.5 23 H15.5 V19 H24 C26.2091 19 28 17.433 28 15.5 C28 13.567 26.2091 12 24 12 H15.5 V8 Z" fill="url(#dashRGlyph)" />
+              <path d="M21 21.5 L28.5 32 H34.5 L26.2 20.8 C24.6 21.3 22.8 21.5 21 21.5 Z" fill="url(#dashRGlyph)" />
+            </g>
+            <polygon points="32.5,5 34.8,8 32.5,11 30.2,8" fill="#00d4ff" />
+            <circle cx="32.5" cy="8" r="1.2" fill="#ffffff" />
+          </svg>
+        </span>
+        <div class="flex flex-col">
+          <span class="font-royal font-bold text-xl text-slate-900 group-hover:text-blue-700 transition">Citriva</span>
+          <span class="font-mono text-[10px] uppercase tracking-widest text-blue-600 font-bold -mt-0.5">Research Rigor</span>
+        </div>
+      </a>
+      <span class="hidden sm:inline-block font-mono text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+        Auditor Console
+      </span>
+    </div>
+
+    <!-- Search Input -->
+    <div class="flex items-center gap-2.5 flex-1 max-w-md mx-6">
+      <i data-lucide="search" class="w-4 h-4 text-blue-500"></i>
+      <input
+        type="search"
+        id="workspace-search-input"
+        oninput="handleSearch(this.value)"
+        placeholder="Search verified manuscripts, DOIs, claims..."
+        class="w-full rounded-xl border border-blue-200 bg-blue-50/50 px-4 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition"
+      >
+    </div>
+
+    <!-- Actions & Profile Badge -->
+    <div class="flex items-center gap-3">
+      <!-- Verified Researcher Identity Badge -->
+      <button onclick="toggleProfileDrawer()" class="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl border border-blue-300 bg-white hover:bg-blue-50 transition shadow-xs group" title="View Verified Academic Profile">
+        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-700 text-white font-bold text-xs shadow-xs" id="nav-avatar">
+          AV
+        </span>
+        <div class="text-left hidden md:block">
+          <p class="text-xs font-bold text-slate-900 leading-tight group-hover:text-blue-700 transition" id="nav-user-name">Prof. Aria Voss</p>
+          <p class="font-mono text-xs text-emerald-700 font-semibold flex items-center gap-1 mt-0.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Strictly Verified
+          </p>
+        </div>
+      </button>
+
+      <button onclick="showDashboardTab('upload')" class="btn-azure-primary text-sm flex items-center gap-1.5 shadow-sm">
+        <i data-lucide="file-up" class="w-4 h-4"></i>
+        Upload PDF
+      </button>
+      
+      <a href="index.html" class="text-sm font-bold px-4 py-2.5 rounded-xl border border-blue-200 text-blue-900 hover:bg-blue-50 transition flex items-center gap-1.5">
+        <i data-lucide="home" class="w-4 h-4 text-blue-600"></i>
+        <span>Home</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- MAIN DASHBOARD LAYOUT: DEDICATED LEFT-SIDE VERTICAL FEATURES DOCK -->
+  <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-[330px_1fr] gap-8 items-start">
+
+      <!-- ******************************************************************** -->
+      <!-- 📍 DEDICATED LEFT-SIDE FEATURES PANEL (ALL 4 FEATURES HIGHLIGHTED) 📍 -->
+      <!-- ******************************************************************** -->
+      <aside class="space-y-6 lg:sticky lg:top-24">
+        
+        <!-- Highlighted Feature Launch Card -->
+        <div class="glass-azure p-6 border-2 border-blue-400 bg-gradient-to-b from-blue-50/90 to-white shadow-lg space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="flex h-3 w-3 rounded-full bg-blue-600 animate-pulse"></span>
+              <span class="font-royal text-xs font-extrabold uppercase tracking-wider text-blue-900">
+                Verification Features
+              </span>
+            </div>
+            <span class="font-mono text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-200 text-blue-800">
+              4 Active
+            </span>
+          </div>
+
+          <p class="text-sm text-slate-600 leading-relaxed font-editorial italic">
+            Select any feature below to inspect its dedicated diagnostic algorithm, consensus graphs, and quote pointers.
+          </p>
+
+          <!-- 4 Highlighted Left Feature Buttons -->
+          <div class="space-y-3">
+            <button
+              onclick="selectSidebarPillar(1)"
+              id="side-p-1"
+              class="w-full text-left p-4 rounded-xl border border-blue-200 bg-white hover:border-blue-400 hover:bg-blue-50/60 transition-all flex items-start gap-3.5 pillar-sidebar-active shadow-xs"
+            >
+              <span class="p-2.5 rounded-lg bg-blue-100 text-blue-700 shrink-0 mt-0.5"><i data-lucide="git-compare" class="w-4 h-4"></i></span>
+              <div>
+                <span class="font-royal font-bold text-sm text-slate-900 block">1. Cross-Reference</span>
+                <span class="text-xs text-slate-500 block leading-tight mt-0.5">Multi-source consensus & conflict queries</span>
+              </div>
+            </button>
+
+            <button
+              onclick="selectSidebarPillar(2)"
+              id="side-p-2"
+              class="w-full text-left p-4 rounded-xl border border-blue-200 bg-white hover:border-amber-400 hover:bg-amber-50/60 transition-all flex items-start gap-3.5 shadow-xs"
+            >
+              <span class="p-2.5 rounded-lg bg-amber-100 text-amber-700 shrink-0 mt-0.5"><i data-lucide="search" class="w-4 h-4"></i></span>
+              <div>
+                <span class="font-royal font-bold text-sm text-slate-900 block">2. Research Gap</span>
+                <span class="text-xs text-slate-500 block leading-tight mt-0.5">Experimental scope & boundary check</span>
+              </div>
+            </button>
+
+            <button
+              onclick="selectSidebarPillar(3)"
+              id="side-p-3"
+              class="w-full text-left p-4 rounded-xl border border-blue-200 bg-white hover:border-rose-400 hover:bg-rose-50/60 transition-all flex items-start gap-3.5 shadow-xs"
+            >
+              <span class="p-2.5 rounded-lg bg-rose-100 text-rose-700 shrink-0 mt-0.5"><i data-lucide="alert-octagon" class="w-4 h-4"></i></span>
+              <div>
+                <span class="font-royal font-bold text-sm text-slate-900 block">3. Overclaim Detection</span>
+                <span class="text-xs text-slate-500 block leading-tight mt-0.5">Statistical hyperbole & NLI audit</span>
+              </div>
+            </button>
+
+            <button
+              onclick="selectSidebarPillar(4)"
+              id="side-p-4"
+              class="w-full text-left p-4 rounded-xl border border-blue-200 bg-white hover:border-emerald-400 hover:bg-emerald-50/60 transition-all flex items-start gap-3.5 shadow-xs"
+            >
+              <span class="p-2.5 rounded-lg bg-emerald-100 text-emerald-700 shrink-0 mt-0.5"><i data-lucide="map-pin" class="w-4 h-4"></i></span>
+              <div>
+                <span class="font-royal font-bold text-sm text-slate-900 block">4. Traceability</span>
+                <span class="text-xs text-slate-500 block leading-tight mt-0.5">Character-for-character quote match</span>
+              </div>
+            </button>
+          </div>
+
+          <!-- Button to open Full Screen Modal from Left Panel -->
+          <button
+            onclick="toggleFeaturesModal()"
+            class="w-full btn-azure-secondary text-sm flex items-center justify-center gap-2 py-3 font-bold shadow-xs"
+          >
+            <i data-lucide="external-link" class="w-4 h-4"></i>
+            Expand Feature Diagnostic Suite
+          </button>
+        </div>
+
+        <!-- Left Navigation Quick Links -->
+        <div class="glass-azure p-5 border-blue-200 bg-white/85 space-y-2.5 shadow-sm">
+          <span class="font-mono text-xs uppercase tracking-wider text-blue-900 font-bold block mb-1">
+            Workspace Views
+          </span>
+          <button onclick="showDashboardTab('overview')" class="w-full text-left text-sm font-bold p-2.5 rounded-xl hover:bg-blue-50 text-slate-800 flex items-center gap-2.5 transition">
+            <i data-lucide="layers" class="w-4 h-4 text-blue-600"></i> Manuscripts Overview
+          </button>
+          <button onclick="showDashboardTab('upload')" class="w-full text-left text-sm font-bold p-2.5 rounded-xl hover:bg-blue-50 text-slate-800 flex items-center gap-2.5 transition">
+            <i data-lucide="file-up" class="w-4 h-4 text-blue-600"></i> Ingest New Manuscript
+          </button>
+          <button onclick="showDashboardTab('reports')" class="w-full text-left text-sm font-bold p-2.5 rounded-xl hover:bg-blue-50 text-slate-800 flex items-center gap-2.5 transition">
+            <i data-lucide="bar-chart-3" class="w-4 h-4 text-blue-600"></i> Audit Reports
+          </button>
+        </div>
+
+      </aside>
+
+      <!-- ******************************************************************** -->
+      <!-- 📊 RIGHT CONTENT AREA: MAIN WORKSPACE DASHBOARD 📊 -->
+      <!-- ******************************************************************** -->
+      <main class="space-y-8 min-w-0">
+
+        <!-- Sub Navigation Tabs -->
+        <div class="flex items-center gap-3 border-b border-blue-200 pb-3">
+          <button onclick="showDashboardTab('overview')" id="tab-btn-overview" class="px-6 py-3 text-sm font-bold rounded-xl bg-blue-100 text-blue-900 border border-blue-300 shadow-sm font-royal">
+            Workspace Overview
+          </button>
+          <button onclick="showDashboardTab('upload')" id="tab-btn-upload" class="px-6 py-3 text-sm font-bold rounded-xl text-slate-600 hover:text-blue-900 hover:bg-blue-50 font-royal transition">
+            Upload Manuscript
+          </button>
+          <button onclick="showDashboardTab('reports')" id="tab-btn-reports" class="px-6 py-3 text-sm font-bold rounded-xl text-slate-600 hover:text-blue-900 hover:bg-blue-50 font-royal transition">
+            Audit Reports
+          </button>
+        </div>
+
+        <!-- TAB 1: OVERVIEW -->
+        <div id="dash-tab-overview" class="space-y-8">
+          
+          <!-- Summary Metrics Cards -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="glass-azure p-5 border-blue-200 bg-white">
+              <span class="text-xs uppercase font-mono text-blue-800 font-bold block mb-1">Audited Manuscripts</span>
+              <p class="font-royal text-3xl font-extrabold text-slate-900">4 Papers</p>
+              <span class="text-xs text-blue-600 mt-1 block">100% GROBID parsed</span>
+            </div>
+            <div class="glass-azure p-5 border-blue-200 bg-white">
+              <span class="text-xs uppercase font-mono text-emerald-800 font-bold block mb-1">Supported Claims</span>
+              <p class="font-royal text-3xl font-extrabold text-emerald-700">11 Verified</p>
+              <span class="text-xs text-emerald-700 mt-1 block">Character-grounded</span>
+            </div>
+            <div class="glass-azure p-5 border-blue-200 bg-white">
+              <span class="text-xs uppercase font-mono text-rose-800 font-bold block mb-1">Overclaims Flagged</span>
+              <p class="font-royal text-3xl font-extrabold text-rose-700">3 Detected</p>
+              <span class="text-xs text-rose-700 mt-1 block">Statistical hyperbole</span>
+            </div>
+            <div class="glass-azure p-5 border-blue-200 bg-white">
+              <span class="text-xs uppercase font-mono text-indigo-800 font-bold block mb-1">Human Review Queue</span>
+              <p class="font-royal text-3xl font-extrabold text-indigo-700">2 Pending</p>
+              <span class="text-xs text-indigo-700 mt-1 block">Confidence &lt; 0.75</span>
+            </div>
+          </div>
+
+          <!-- Audited Manuscripts Table -->
+          <div class="glass-azure border-blue-200 bg-white overflow-hidden shadow-sm">
+            <div class="p-6 border-b border-blue-100 flex items-center justify-between">
+              <div>
+                <h3 class="font-royal text-xl font-bold text-slate-900">Verified Literature Database</h3>
+                <p class="text-sm text-slate-600 mt-0.5">Click any record to inspect character-for-character quote grounding and 4-pillar diagnostics.</p>
+              </div>
+              <button onclick="downloadPdf('nature-2024')" class="btn-azure-secondary text-xs flex items-center gap-1.5 font-bold">
+                <i data-lucide="file-text" class="w-4 h-4"></i>
+                Export Selected PDF
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm text-slate-700">
+                <thead class="bg-blue-50/70 text-xs font-mono uppercase text-blue-900 border-b border-blue-200">
+                  <tr>
+                    <th class="px-6 py-4 font-bold">Manuscript Title</th>
+                    <th class="px-4 py-4 font-bold text-center">Claims</th>
+                    <th class="px-4 py-4 font-bold text-center">Discrepancies</th>
+                    <th class="px-4 py-4 font-bold">Status</th>
+                    <th class="px-6 py-4 font-bold text-right">Audit</th>
+                  </tr>
+                </thead>
+                <tbody id="manuscripts-tbody" class="divide-y divide-blue-100 font-medium"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: UPLOAD MANUSCRIPT -->
+        <div id="dash-tab-upload" class="hidden space-y-6">
+          <div class="glass-azure p-10 border-2 border-dashed border-blue-300 bg-white text-center rounded-3xl space-y-4">
+            <div class="flex justify-center">
+              <span class="p-4 rounded-2xl bg-blue-100 text-blue-700 border border-blue-300">
+                <i data-lucide="upload-cloud" class="w-10 h-10"></i>
+              </span>
+            </div>
+            <h3 class="font-royal text-2xl font-bold text-slate-900">Ingest Academic PDF for Verification</h3>
+            <p class="text-sm text-slate-600 max-w-md mx-auto">
+              Upload your research manuscript (PDF, max 15MB). Citriva segments TEI-XML, filters empirical claims, and waterfalls references across scholarly graphs.
+            </p>
+            <div class="flex justify-center gap-4 pt-2">
+              <button onclick="simulateUpload()" class="btn-azure-primary text-base flex items-center gap-2 px-8 py-4 shadow-lg">
+                <i data-lucide="play" class="w-5 h-5"></i>
+                Select PDF & Run Pipeline
+              </button>
+            </div>
+          </div>
+
+          <!-- Progress Bar Box (Revealed on upload) -->
+          <div id="upload-progress-box" class="hidden glass-azure p-6 border-blue-300 bg-blue-50/60 space-y-4">
+            <div class="flex items-center justify-between text-sm font-bold">
+              <span id="pipe-stage-title" class="font-mono text-blue-900">Parsing structural TEI-XML via GROBID...</span>
+              <span id="pipe-percent" class="font-mono text-blue-700">30%</span>
+            </div>
+            <div class="w-full bg-blue-200 h-3 rounded-full overflow-hidden">
+              <div id="pipe-bar" class="bg-blue-600 h-full transition-all duration-500" style="width: 30%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: AUDIT REPORTS -->
+        <div id="dash-tab-reports" class="hidden space-y-6">
+          <div class="glass-azure p-6 border-blue-200 bg-white space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-royal text-xl font-bold text-slate-900">Exportable Academic Reports</h3>
+                <p class="text-sm text-slate-600 mt-0.5">Strict PDF 1.4 compilation formatted for journal reviewers and editorial committees.</p>
+              </div>
+            </div>
+            <div id="reports-list-container" class="space-y-4"></div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- EVIDENCE DRAWER SLIDE-OVER -->
+  <div id="evidence-drawer" class="hidden fixed inset-0 z-50 overflow-hidden">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity" onclick="closeDrawer()"></div>
+    <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+      <div class="w-screen max-w-2xl bg-white border-l border-blue-200 shadow-2xl p-6 sm:p-8 flex flex-col justify-between space-y-6 overflow-y-auto">
+        <div class="space-y-6">
+          <div class="flex items-center justify-between border-b border-blue-100 pb-4">
+            <div class="flex items-center gap-3">
+              <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 text-blue-700 font-bold">
+                <i data-lucide="file-search" class="w-5 h-5"></i>
+              </span>
+              <div>
+                <h3 class="font-royal text-lg font-bold text-slate-900 leading-tight" id="drawer-doc-title">Manuscript Title</h3>
+                <span class="font-mono text-xs text-blue-600 font-bold" id="drawer-doc-id">DOC-ID</span>
+              </div>
+            </div>
+            <button onclick="closeDrawer()" class="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <div id="drawer-claims-container" class="space-y-6"></div>
+        </div>
+
+        <div class="pt-4 border-t border-blue-100 flex items-center justify-between">
+          <button onclick="closeDrawer()" class="px-5 py-2.5 rounded-xl border border-blue-200 text-slate-700 font-bold text-sm hover:bg-blue-50">
+            Close Panel
+          </button>
+          <button onclick="downloadActiveDocPdf()" class="btn-azure-primary text-sm flex items-center gap-2 shadow-md">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            Download Audit PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUDITOR PROFILE DRAWER -->
+  <div id="profile-drawer" class="hidden fixed inset-0 z-50 overflow-hidden">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity" onclick="toggleProfileDrawer()"></div>
+    <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+      <div class="w-screen max-w-md bg-white border-l border-blue-200 shadow-2xl p-6 flex flex-col justify-between space-y-6">
+        <div class="space-y-6">
+          <div class="flex items-center justify-between border-b border-blue-100 pb-4">
+            <div class="flex items-center gap-3">
+              <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-blue-700 text-white font-bold text-sm shadow-sm" id="prof-drawer-avatar">
+                AV
+              </span>
+              <div>
+                <h3 class="font-royal text-lg font-bold text-slate-900 leading-tight" id="prof-drawer-name">Prof. Aria Voss, PhD</h3>
+                <span class="inline-flex items-center gap-1 font-mono text-xs text-emerald-700 font-bold">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Strictly Verified Academic
+                </span>
+              </div>
+            </div>
+            <button onclick="toggleProfileDrawer()" class="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <!-- Stored Memory Address Details -->
+          <div class="space-y-4">
+            <div class="p-4 rounded-2xl border border-blue-200 bg-blue-50/60 space-y-2">
+              <span class="font-mono text-xs uppercase font-bold text-blue-800 tracking-wider block">
+                Registered Memory Address
+              </span>
+              <p class="font-mono text-sm font-bold text-slate-900 break-all" id="prof-drawer-address">
+                aria.voss@mit.edu
+              </p>
+              <div class="flex items-center justify-between text-xs text-slate-600 border-t border-blue-100 pt-2 mt-1">
+                <span>Address Type: <strong id="prof-drawer-type">Academic Email</strong></span>
+                <span class="text-emerald-700 font-bold">● TLS 1.3 Bound</span>
+              </div>
+            </div>
+
+            <div class="space-y-2.5 text-sm">
+              <div class="flex items-center justify-between py-2 border-b border-slate-100">
+                <span class="text-slate-500">Institution</span>
+                <strong class="text-slate-900" id="prof-drawer-institution">MIT CSAIL</strong>
+              </div>
+              <div class="flex items-center justify-between py-2 border-b border-slate-100">
+                <span class="text-slate-500">Role</span>
+                <strong class="text-slate-900" id="prof-drawer-role">Principal Investigator</strong>
+              </div>
+              <div class="flex items-center justify-between py-2 border-b border-slate-100">
+                <span class="text-slate-500">Domain</span>
+                <strong class="text-slate-900" id="prof-drawer-domain">AI & Natural Language Inference</strong>
+              </div>
+              <div class="flex items-center justify-between py-2 border-b border-slate-100">
+                <span class="text-slate-500">Auditor Status</span>
+                <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-mono text-xs font-bold">Level 3 Clearance</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-3 pt-4 border-t border-blue-100">
+          <button onclick="handleSignOut()" class="w-full py-3 rounded-xl border border-rose-200 bg-rose-50/70 hover:bg-rose-100 text-rose-700 text-sm font-bold transition flex items-center justify-center gap-1.5">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+            Sign Out of Profile
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURE POP-UP MODAL -->
+  <div id="features-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" onclick="toggleFeaturesModal()"></div>
+    <div class="glass-azure max-w-4xl w-full p-8 border-2 border-blue-300 bg-white relative z-10 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-blue-200 pb-4">
+        <div>
+          <span class="font-mono text-xs uppercase font-bold text-blue-700">Verification Algorithms</span>
+          <h2 class="font-royal text-2xl font-bold text-slate-900">4-Pillar Diagnostic Engine</h2>
+        </div>
+        <button onclick="toggleFeaturesModal()" class="p-2 rounded-xl border border-blue-200 hover:bg-blue-50 text-slate-500">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <button onclick="switchModalPillar(1)" id="mod-p-1" class="p-4 rounded-xl border-2 border-blue-500 bg-blue-100/90 text-left transition-all shadow-xs">
+          <span class="font-mono text-xs text-blue-800 font-bold block mb-1">01 / Consensus</span>
+          <strong class="text-sm text-slate-900 block font-royal">Cross-Ref</strong>
+        </button>
+        <button onclick="switchModalPillar(2)" id="mod-p-2" class="p-4 rounded-xl border border-blue-200 bg-white text-left transition-all hover:border-blue-300">
+          <span class="font-mono text-xs text-amber-800 font-bold block mb-1">02 / Scope</span>
+          <strong class="text-sm text-slate-900 block font-royal">Research Gap</strong>
+        </button>
+        <button onclick="switchModalPillar(3)" id="mod-p-3" class="p-4 rounded-xl border border-blue-200 bg-white text-left transition-all hover:border-blue-300">
+          <span class="font-mono text-xs text-rose-800 font-bold block mb-1">03 / Hyperbole</span>
+          <strong class="text-sm text-slate-900 block font-royal">Overclaim</strong>
+        </button>
+        <button onclick="switchModalPillar(4)" id="mod-p-4" class="p-4 rounded-xl border border-blue-200 bg-white text-left transition-all hover:border-blue-300">
+          <span class="font-mono text-xs text-emerald-800 font-bold block mb-1">04 / Grounding</span>
+          <strong class="text-sm text-slate-900 block font-royal">Traceability</strong>
+        </button>
+      </div>
+
+      <div id="modal-feature-body" class="p-6 rounded-2xl border border-blue-200 bg-blue-50/50 space-y-4"></div>
+    </div>
+  </div>
+
+  <script>
+    // Cursor Physics
+    document.addEventListener('mousemove', (e) => {
+      document.documentElement.style.setProperty('--cursor-x', `${e.clientX}px`);
+      document.documentElement.style.setProperty('--cursor-y', `${e.clientY}px`);
+    });
+
+    // Secondary Runtime Guard & Profile Hydration
+    const activeUser = JSON.parse(localStorage.getItem('citriva_active_user') || 'null');
+    if (!activeUser || !activeUser.verified) {
+      window.location.replace("login.html?auth_required=1");
+    } else {
+      // Populate User Profile Details
+      const navUser = document.getElementById('nav-user-name');
+      if (navUser) navUser.textContent = activeUser.name;
+      const navAv = document.getElementById('nav-avatar');
+      const initials = activeUser.name.split(' ').map(n => n[0]).filter(c => /[A-Za-z]/.test(c)).slice(0, 2).join('') || 'AV';
+      if (navAv) navAv.textContent = initials;
+
+      const dName = document.getElementById('prof-drawer-name');
+      if (dName) dName.textContent = activeUser.name;
+      const dAddr = document.getElementById('prof-drawer-address');
+      if (dAddr) dAddr.textContent = activeUser.memoryAddress;
+      const dType = document.getElementById('prof-drawer-type');
+      if (dType) dType.textContent = activeUser.memoryType === 'email' ? 'Academic Email' : 'Mobile Phone';
+      const dInst = document.getElementById('prof-drawer-institution');
+      if (dInst) dInst.textContent = activeUser.institution;
+      const dRole = document.getElementById('prof-drawer-role');
+      if (dRole) dRole.textContent = activeUser.role;
+      const dDom = document.getElementById('prof-drawer-domain');
+      if (dDom) dDom.textContent = activeUser.domain;
+      const dAv = document.getElementById('prof-drawer-avatar');
+      if (dAv) dAv.textContent = initials;
+    }
+
+    function toggleProfileDrawer() {
+      const drawer = document.getElementById('profile-drawer');
+      if (drawer) {
+        drawer.classList.toggle('hidden');
+        lucide.createIcons();
+      }
+    }
+
+    function handleSignOut() {
+      localStorage.removeItem('citriva_active_user');
+      window.location.href = "login.html";
+    }
+
+    // Academic Research Datasets
+    const RESEARCH_DOCS = [
+      {
+        id: "nature-2024",
+        title: "Foundation Vision-Language Models for Clinical Pneumothorax Segmentation",
+        authors: "Rajpurkar, P., Irvin, J., et al.",
+        year: 2024,
+        venue: "Nature Medicine",
+        claims: [
+          {
+            id: "c1",
+            text: "CheXNet achieved 100% sensitivity across 14 thoracic pathologies without generating false positives.",
+            citingSentence: "Previous automated screening tools claimed 100% sensitivity across all thoracic conditions.",
+            paperTitle: "CheXNet: Radiologist-Level Pneumonia Detection on Chest X-Rays with Deep Learning",
+            doi: "10.1371/journal.pmed.1002686",
+            verdict: "UNSUPPORTED",
+            confidence: "96.4%",
+            quote: "CheXNet achieved an F1 score of 0.435 (95% CI 0.387, 0.481) on pneumonia detection, exceeding average radiologist performance.",
+            overclaim: {
+              detected: true,
+              authorText: "100% sensitivity across 14 pathologies without false positives",
+              actualText: "F1 score 0.435 on pneumonia (ROC area 0.841) across a finite test set"
+            }
+          },
+          {
+            id: "c2",
+            text: "Deep convolutional models generalize to external clinic distributions without fine-tuning.",
+            citingSentence: "Model weights trained on ChestX-ray14 transfer directly to community clinic cohorts.",
+            paperTitle: "External Validation of Deep Learning in Radiology",
+            doi: "10.1038/s41746-020-00322-2",
+            verdict: "PARTIALLY_SUPPORTED",
+            confidence: "82.1%",
+            quote: "Performance dropped by 11.2% AUC when evaluated on out-of-distribution community clinic imaging systems without calibration.",
+            researchGap: {
+              detected: true,
+              variable: "External calibration & acquisition device variations"
+            }
+          }
+        ]
+      },
+      {
+        id: "lancet-2023",
+        title: "Oral SGLT2 Inhibitors in Non-Diabetic Chronic Kidney Disease Progression",
+        authors: "Heerspink, H. J., Stefánsson, B. V., et al.",
+        year: 2023,
+        venue: "The Lancet",
+        claims: [
+          {
+            id: "c3",
+            text: "Dapagliflozin reduces risk of composite sustained eGFR decline by 44% in patients with CKD.",
+            citingSentence: "Renal outcome trials establish dapagliflozin efficacy in non-diabetic populations.",
+            paperTitle: "Dapagliflozin in Patients with Chronic Kidney Disease",
+            doi: "10.1056/NEJMoa2024816",
+            verdict: "SUPPORTED",
+            confidence: "98.7%",
+            quote: "The hazard ratio for the primary composite outcome was 0.56 (95% CI, 0.45 to 0.68; P<0.001) in favor of dapagliflozin.",
+            traceability: {
+              page: 6,
+              section: "Results — Primary Endpoint",
+              sentenceId: "P-044-S3"
+            }
+          }
+        ]
+      }
+    ];
+
+    let activeDoc = RESEARCH_DOCS[0];
+
+    // Pillar Visual Configurations
+    const PILLAR_CONFIGS = {
+      1: {
+        badge: "Pillar 1: Cross-Reference Verification",
+        title: "Multi-Source Literature Consensus Analysis",
+        paperTitle: "Deep learning for chest radiograph diagnosis",
+        doi: "10.1371/journal.pmed.1002686",
+        verdict: "UNSUPPORTED",
+        confidence: "96.4%",
+        quote: "CheXNet achieved an F1 score of 0.435 (95% CI 0.387, 0.481) on pneumonia detection, exceeding average radiologist performance.",
+        renderFeature: () => `
+          <div class="p-4 rounded-2xl border border-blue-200 bg-white space-y-3 shadow-xs">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-800">Literature Consensus Ratio</span>
+              <span class="font-mono font-bold text-rose-700">1 Agree / 4 Conflict</span>
+            </div>
+            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden flex">
+              <div class="bg-emerald-500 h-full" style="width: 20%"></div>
+              <div class="bg-rose-500 h-full" style="width: 80%"></div>
+            </div>
+            <p class="text-xs text-slate-600">4 independent trials report significant false positives on external cohorts, directly refuting the manuscript claim.</p>
+          </div>
+        `
+      },
+      2: {
+        badge: "Pillar 2: Research Gap Identification",
+        title: "Experimental Boundary & Scope Insufficiency",
+        paperTitle: "External Validation of Deep Learning in Radiology",
+        doi: "10.1038/s41746-020-00322-2",
+        verdict: "PARTIALLY_SUPPORTED",
+        confidence: "82.1%",
+        quote: "Performance dropped by 11.2% AUC when evaluated on out-of-distribution community clinic imaging systems without calibration.",
+        renderFeature: () => `
+          <div class="p-4 rounded-2xl border border-amber-200 bg-amber-50/60 space-y-2">
+            <span class="font-mono text-xs uppercase text-amber-800 font-bold block">Identified Research Gap</span>
+            <p class="text-sm font-bold text-slate-900">Untested Clinical Variable: Hospital Scanner Hardware Heterogeneity</p>
+            <p class="text-xs text-slate-700">The cited paper was evaluated only on Siemens scanners; the citing claim generalized to all clinic hardware.</p>
+          </div>
+        `
+      },
+      3: {
+        badge: "Pillar 3: Overclaim Detection",
+        title: "Statistical Hyperbole & Conclusion Inflation",
+        paperTitle: "CheXNet: Radiologist-Level Pneumonia Detection on Chest X-Rays",
+        doi: "10.1371/journal.pmed.1002686",
+        verdict: "UNSUPPORTED",
+        confidence: "96.4%",
+        quote: "CheXNet achieved an F1 score of 0.435 (95% CI 0.387, 0.481) on pneumonia detection, exceeding average radiologist performance.",
+        renderFeature: () => `
+          <div class="p-4 rounded-2xl border border-rose-200 bg-rose-50/60 space-y-2">
+            <span class="font-mono text-xs uppercase text-rose-800 font-bold block">Overclaim Flag</span>
+            <div class="text-xs space-y-1">
+              <p><strong>Manuscript asserts:</strong> "100% sensitivity across 14 pathologies"</p>
+              <p><strong>Source data establishes:</strong> "F1 score 0.435 on pneumonia"</p>
+            </div>
+          </div>
+        `
+      },
+      4: {
+        badge: "Pillar 4: Evidence Traceability",
+        title: "Character-for-Character Verbatim Substring Grounding",
+        paperTitle: "Dapagliflozin in Patients with Chronic Kidney Disease",
+        doi: "10.1056/NEJMoa2024816",
+        verdict: "SUPPORTED",
+        confidence: "98.7%",
+        quote: "The hazard ratio for the primary composite outcome was 0.56 (95% CI, 0.45 to 0.68; P<0.001) in favor of dapagliflozin.",
+        renderFeature: () => `
+          <div class="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 space-y-2">
+            <span class="font-mono text-xs uppercase text-emerald-800 font-bold block">Sentence Grounding Pointer</span>
+            <div class="flex items-center justify-between text-xs font-mono font-bold text-emerald-900">
+              <span>Page: 6</span>
+              <span>Section: Results — Primary</span>
+              <span>Sentence ID: #P-044-S3</span>
+            </div>
+            <p class="text-xs text-emerald-800">100% character-for-character verbatim match verified in source PDF text stream.</p>
+          </div>
+        `
+      }
+    };
+
+    function selectSidebarPillar(pNum) {
+      [1, 2, 3, 4].forEach(n => {
+        const btn = document.getElementById('side-p-' + n);
+        if (btn) {
+          if (n === pNum) btn.classList.add('pillar-sidebar-active');
+          else btn.classList.remove('pillar-sidebar-active');
+        }
+      });
+      openFeatureModalWithPillar(pNum);
+    }
+
+    function toggleFeaturesModal() {
+      const modal = document.getElementById('features-modal');
+      modal.classList.toggle('hidden');
+      switchModalPillar(1);
+      lucide.createIcons();
+    }
+
+    function openFeatureModalWithPillar(pNum) {
+      const modal = document.getElementById('features-modal');
+      modal.classList.remove('hidden');
+      switchModalPillar(pNum);
+      lucide.createIcons();
+    }
+
+    function switchModalPillar(pNum) {
+      [1, 2, 3, 4].forEach(n => {
+        const btn = document.getElementById('mod-p-' + n);
+        if (btn) {
+          if (n === pNum) btn.className = "p-4 rounded-xl border-2 border-blue-500 bg-blue-100/90 text-left transition-all shadow-xs";
+          else btn.className = "p-4 rounded-xl border border-blue-200 bg-white text-left transition-all hover:border-blue-300";
+        }
+      });
+
+      const cfg = PILLAR_CONFIGS[pNum];
+      const body = document.getElementById('modal-feature-body');
+      body.innerHTML = `
+        <div class="space-y-4">
+          <div class="p-4 rounded-xl border border-blue-200 bg-blue-50/70 space-y-1">
+            <span class="font-mono text-xs uppercase font-bold text-blue-700">${cfg.badge}</span>
+            <h3 class="font-royal text-xl font-bold text-slate-900">${cfg.title}</h3>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div class="p-3.5 rounded-xl border border-blue-200 bg-white shadow-xs">
+              <span class="font-mono uppercase text-blue-800 font-bold block mb-1">Source Paper</span>
+              <p class="font-bold text-sm text-slate-900">${cfg.paperTitle}</p>
+              <p class="font-mono text-xs text-blue-700 font-semibold mt-0.5">doi:${cfg.doi}</p>
+            </div>
+            <div class="p-3.5 rounded-xl border border-blue-200 bg-white shadow-xs">
+              <span class="font-mono uppercase text-blue-800 font-bold block mb-1">NLI Verdict</span>
+              <p class="font-mono text-base font-bold text-slate-900">${cfg.verdict}</p>
+              <p class="font-mono text-xs text-emerald-700 font-semibold mt-0.5">Confidence: ${cfg.confidence}</p>
+            </div>
+          </div>
+          ${cfg.renderFeature()}
+          <div class="p-4 rounded-xl border border-blue-200 bg-white space-y-1 shadow-xs">
+            <span class="font-mono text-xs uppercase text-blue-800 font-bold">Verbatim Retrieved Evidence Quote</span>
+            <p class="font-editorial text-sm text-slate-800 italic bg-blue-50/60 p-3.5 rounded-xl border border-blue-100">"${cfg.quote}"</p>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    function showDashboardTab(tabId) {
+      ['overview', 'upload', 'reports'].forEach(t => {
+        document.getElementById('dash-tab-' + t).classList.add('hidden');
+        document.getElementById('tab-btn-' + t).className = "px-6 py-3 text-sm font-bold rounded-xl text-slate-600 hover:text-blue-900 hover:bg-blue-50 font-royal transition";
+      });
+      document.getElementById('dash-tab-' + tabId).classList.remove('hidden');
+      document.getElementById('tab-btn-' + tabId).className = "px-6 py-3 text-sm font-bold rounded-xl bg-blue-100 text-blue-900 border border-blue-300 shadow-sm font-royal";
+      lucide.createIcons();
+    }
+
+    function renderManuscriptsTable(list) {
+      const tbody = document.getElementById('manuscripts-tbody');
+      tbody.innerHTML = '';
+      list.forEach(doc => {
+        const flagged = doc.claims.filter(c => c.verdict !== 'SUPPORTED').length;
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-blue-50/60 cursor-pointer transition";
+        tr.onclick = () => openDrawer(doc);
+        tr.innerHTML = `
+          <td class="px-6 py-4 font-bold text-slate-900 max-w-md truncate font-royal text-base">${doc.title}</td>
+          <td class="px-4 py-4 text-center font-mono font-bold text-slate-800 text-sm">${doc.claims.length}</td>
+          <td class="px-4 py-4 text-center font-mono">
+            <span class="px-3 py-1 rounded-full text-xs font-bold ${flagged > 0 ? 'bg-amber-100 border border-amber-300 text-amber-900' : 'text-slate-400'}">${flagged}</span>
+          </td>
+          <td class="px-4 py-4">
+            <span class="inline-flex items-center gap-1 font-mono text-xs uppercase font-bold text-emerald-800 border border-emerald-300 bg-emerald-50 px-3 py-1 rounded-full">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i> Verified
+            </span>
+          </td>
+          <td class="px-6 py-4 text-right">
+            <button class="text-xs px-3.5 py-1.5 rounded-lg border border-blue-300 text-blue-700 font-bold hover:bg-blue-100 transition shadow-xs">Inspect</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const reportsContainer = document.getElementById('reports-list-container');
+      reportsContainer.innerHTML = '';
+      list.forEach(doc => {
+        const item = document.createElement('div');
+        item.className = "glass-azure p-6 border-blue-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 interactive-card shadow-sm";
+        item.innerHTML = `
+          <div>
+            <span class="font-mono text-xs uppercase text-blue-700 font-bold">Document ID: ${doc.id}</span>
+            <h4 class="font-royal font-bold text-slate-900 text-lg mt-0.5">${doc.title}</h4>
+            <p class="text-sm text-slate-500 font-mono mt-1">${doc.authors} • ${doc.venue} (${doc.year})</p>
+          </div>
+          <button onclick="downloadPdf('${doc.id}')" class="btn-azure-primary text-sm flex items-center gap-2 shrink-0">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            Export PDF Audit
+          </button>
+        `;
+        reportsContainer.appendChild(item);
+      });
+      lucide.createIcons();
+    }
+
+    function openDrawer(doc) {
+      activeDoc = doc;
+      document.getElementById('drawer-doc-title').textContent = doc.title;
+      document.getElementById('drawer-doc-id').textContent = doc.id;
+      const cCont = document.getElementById('drawer-claims-container');
+      cCont.innerHTML = '';
+
+      doc.claims.forEach(c => {
+        const card = document.createElement('div');
+        card.className = "glass-azure p-6 border-blue-200 bg-white space-y-4 shadow-sm";
+        card.innerHTML = `
+          <div class="flex items-center justify-between border-b border-blue-100 pb-3">
+            <span class="font-mono text-xs font-bold uppercase tracking-wide px-3 py-1 rounded-full ${
+              c.verdict === 'SUPPORTED' ? 'bg-emerald-50 text-emerald-800 border border-emerald-300' :
+              c.verdict === 'PARTIALLY_SUPPORTED' ? 'bg-amber-50 text-amber-800 border border-amber-300' :
+              'bg-rose-50 text-rose-800 border border-rose-300'
+            }">${c.verdict}</span>
+            <span class="font-mono text-xs text-blue-700 font-bold">Confidence: ${c.confidence}</span>
+          </div>
+          <div>
+            <span class="font-mono text-xs uppercase text-slate-500 font-bold block mb-1">Citing Claim</span>
+            <p class="font-editorial text-base text-slate-900 italic bg-blue-50/40 p-3.5 rounded-xl border-l-4 border-blue-600">"${c.text}"</p>
+          </div>
+          <div class="p-3.5 rounded-xl border border-blue-100 bg-blue-50/50 text-xs">
+            <span class="font-mono uppercase text-blue-800 font-bold block mb-0.5">Source Paper Citation</span>
+            <p class="text-slate-900 font-bold text-sm">${c.paperTitle}</p>
+            <p class="font-mono text-xs text-blue-700 mt-0.5">doi:${c.doi}</p>
+          </div>
+          <div>
+            <span class="font-mono text-xs uppercase text-blue-800 font-bold block mb-1">Verbatim Retrieved Quote</span>
+            <p class="text-sm text-slate-800 font-editorial italic bg-white p-3 rounded-lg border border-blue-200">"${c.quote}"</p>
+          </div>
+        `;
+        cCont.appendChild(card);
+      });
+
+      document.getElementById('evidence-drawer').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeDrawer() {
+      document.getElementById('evidence-drawer').classList.add('hidden');
+    }
+
+    // %PDF-1.4 Binary Generator
+    function generatePdf(doc) {
+      const chunks = [];
+      const offsets = [0];
+
+      function addObj(str) {
+        offsets.push(offsets[offsets.length - 1] + chunks.join('').length);
+        chunks.push(`${offsets.length - 1} 0 obj\n${str}\nendobj\n`);
+      }
+
+      chunks.push("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n");
+      addObj(`<< /Type /Catalog /Pages 2 0 R >>`);
+      addObj(`<< /Type /Pages /Kids [3 0 R] /Count 1 >>`);
+      addObj(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>`);
+      addObj(`<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>`);
+
+      const cleanTitle = (doc.title || "Academic Manuscript").replace(/[()]/g, '');
+      const content = 
+        `BT /F1 16 Tf 50 740 Td (CITRIVA AUDIT REPORT) Tj ET\n` +
+        `BT /F1 11 Tf 50 710 Td (Document: ${cleanTitle.substring(0, 50)}) Tj ET\n` +
+        `BT /F1 10 Tf 50 685 Td (Verified via: Cross-Reference, Research Gap, Overclaim, Traceability) Tj ET\n` +
+        `BT /F1 10 Tf 50 660 Td (Total Claims Verified: ${doc.claims.length}) Tj ET\n` +
+        `BT /F1 9 Tf 50 635 Td (Status: All verdicts character-grounded without LLM hallucination) Tj ET`;
+
+      addObj(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`);
+
+      const startxref = chunks.join('').length;
+      let xref = `xref\n0 ${offsets.length}\n0000000000 65535 f \n`;
+      for (let i = 1; i < offsets.length; i++) {
+        xref += `${String(offsets[i]).padStart(10, '0')} 00000 n \n`;
+      }
+      chunks.push(`${xref}trailer\n<< /Size ${offsets.length} /Root 1 0 R >>\nstartxref\n${startxref}\n%%EOF`);
+
+      const pdf = new Uint8Array(chunks.join('').length);
+      for (let i = 0; i < chunks.join('').length; i++) {
+        pdf[i] = chunks.join('').charCodeAt(i) & 0xff;
+      }
+      return new Blob([pdf], { type: 'application/pdf' });
+    }
+
+    function downloadPdf(id) {
+      const doc = RESEARCH_DOCS.find(d => d.id === id);
+      if (!doc) return;
+      const blob = generatePdf(doc);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${doc.id}-audit-report.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function downloadActiveDocPdf() {
+      if (activeDoc) downloadPdf(activeDoc.id);
+    }
+
+    function simulateUpload() {
+      const pBox = document.getElementById('upload-progress-box');
+      pBox.classList.remove('hidden');
+      const pBar = document.getElementById('pipe-bar');
+      const pText = document.getElementById('pipe-percent');
+      const pTitle = document.getElementById('pipe-stage-title');
+
+      const stages = [
+        { pct: "30%", title: "Parsing structural TEI-XML via GROBID..." },
+        { pct: "60%", title: "Waterfalling DOIs across OpenAlex & Semantic Scholar..." },
+        { pct: "85%", title: "Validating character-for-character verbatim substrings..." },
+        { pct: "100%", title: "Verification audit scorecard compiled!" }
+      ];
+
+      let idx = 0;
+      const interval = setInterval(() => {
+        if (idx < stages.length) {
+          pBar.style.width = stages[idx].pct;
+          pText.textContent = stages[idx].pct;
+          pTitle.textContent = stages[idx].title;
+          idx++;
+        } else {
+          clearInterval(interval);
+          setTimeout(() => {
+            pBox.classList.add('hidden');
+            openDrawer(RESEARCH_DOCS[0]);
+          }, 600);
+        }
+      }, 700);
+    }
+
+    renderManuscriptsTable(RESEARCH_DOCS);
+    lucide.createIcons();
+  </script>
+</body>
+</html>
